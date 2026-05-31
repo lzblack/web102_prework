@@ -2,14 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Monster Crowdfunding</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
   </head>
 
   <body>
     <!-- header row with logo -->
     <div class="header">
-        <img id="tentacles" src="assets/tentacles.png">
+        <img id="tentacles" src="assets/tentacles.png" alt="">
         <h1 class="header-text">Sea Monster Crowdfunding</h1>
     </div>
 
@@ -48,12 +49,21 @@
     </div>
 
     <!-- list of games funded by Sea Monster -->
-    <h2>Our Games</h2>
-    <p>Check out each of our games below!</p>
-    <div id="button-container">
-        <button id="unfunded-btn">Show Unfunded Only</button>
-        <button id="funded-btn">Show Funded Only</button>
-        <button id="all-btn">Show All Games</button>
+    <div class="games-heading">
+        <div>
+            <h2>Our Games</h2>
+            <p>Check out each of our games below!</p>
+        </div>
+        <label class="search-control" for="search-input">
+            <span>Search games</span>
+            <input id="search-input" type="search" placeholder="Search by game name">
+        </label>
+    </div>
+    <div id="button-container" aria-label="Game filters">
+        <button id="all-btn" type="button">Show All Games</button>
+        <button id="unfunded-btn" type="button">Show Unfunded Only</button>
+        <button id="funded-btn" type="button">Show Funded Only</button>
+        <button id="sort-btn" type="button">Sort by Amount Raised</button>
     </div>
     <div id="games-container">
 

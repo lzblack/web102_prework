@@ -41,20 +41,35 @@ function addGamesToPage(games) {
         // about each game
         // TIP: if your images are not displaying, make sure there is space
         // between the end of the src attribute and the end of the tag ("/>")
+        const fundingPercentage = Math.round((games[i].pledged / games[i].goal) * 100);
+        const progressBarWidth = Math.min(fundingPercentage, 100);
+        const fundedBadge = games[i].pledged >= games[i].goal
+            ? `<span class="funded-badge">Funded</span>`
+            : "";
+
         gameCard.innerHTML = `
             <img src="${games[i].img}" alt="${games[i].name}" class="game-img">
-            <h3>${games[i].name}</h3>
-            <p>${games[i].description}</p>
+            <div class="game-card-content">
+                <div class="game-card-heading">
+                    <h3>${games[i].name}</h3>
+                    ${fundedBadge}
+                </div>
+                <p class="game-description">${games[i].description}</p>
+                <div class="funding-details">
+                    <span>$${games[i].pledged.toLocaleString()} raised</span>
+                    <span>$${games[i].goal.toLocaleString()} goal</span>
+                </div>
+                <div class="progress-track" role="progressbar" aria-label="${games[i].name} funding progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressBarWidth}">
+                    <div class="progress-bar" style="width: ${progressBarWidth}%"></div>
+                </div>
+                <p class="progress-label">${fundingPercentage}% funded</p>
+            </div>
         `;
 
         // append the game to the games-container
         gamesContainer.appendChild(gameCard);
     }
 }
-
-// call the function we just defined using the correct variable
-// later, we'll call this function using a different list of games
-addGamesToPage(GAMES_JSON);
 
 /*************************************************************************************
  * Challenge 4: Create the summary statistics at the top of the page displaying the
@@ -94,46 +109,76 @@ gamesCard.innerHTML = `
  * Skills used: functions, filter
 */
 
-// show only games that do not yet have enough funding
-function filterUnfundedOnly() {
-    deleteChildElements(gamesContainer);
-
-    // use filter() to get a list of games that have not yet met their goal
-    const unfundedGames = GAMES_JSON.filter(game => game.pledged < game.goal);
-
-    // use the function we previously created to add the unfunded games to the DOM
-    addGamesToPage(unfundedGames);
-
-}
-
-// show only games that are fully funded
-function filterFundedOnly() {
-    deleteChildElements(gamesContainer);
-
-    // use filter() to get a list of games that have met or exceeded their goal
-    const fundedGames = GAMES_JSON.filter(game => game.pledged >= game.goal);
-
-    // use the function we previously created to add funded games to the DOM
-    addGamesToPage(fundedGames);
-}
-
-// show all games
-function showAllGames() {
-    deleteChildElements(gamesContainer);
-
-    // add all games from the JSON data to the DOM
-    addGamesToPage(GAMES_JSON);
-}
-
 // select each button in the "Our Games" section
 const unfundedBtn = document.getElementById("unfunded-btn");
 const fundedBtn = document.getElementById("funded-btn");
 const allBtn = document.getElementById("all-btn");
+const sortBtn = document.getElementById("sort-btn");
+const searchInput = document.getElementById("search-input");
+
+let selectedFilter = "all";
+let isSortedByPledged = false;
+let searchQuery = "";
+
+function updateActiveControls() {
+    allBtn.classList.toggle("active", selectedFilter === "all");
+    unfundedBtn.classList.toggle("active", selectedFilter === "unfunded");
+    fundedBtn.classList.toggle("active", selectedFilter === "funded");
+    sortBtn.classList.toggle("active", isSortedByPledged);
+    sortBtn.setAttribute("aria-pressed", isSortedByPledged);
+}
+
+function getVisibleGames() {
+    const filteredGames = GAMES_JSON.filter(game => {
+        const matchesFundingFilter = selectedFilter === "all"
+            || (selectedFilter === "funded" && game.pledged >= game.goal)
+            || (selectedFilter === "unfunded" && game.pledged < game.goal);
+        const matchesSearch = game.name.toLowerCase().includes(searchQuery);
+
+        return matchesFundingFilter && matchesSearch;
+    });
+
+    if (isSortedByPledged) {
+        return [...filteredGames].sort((item1, item2) => item2.pledged - item1.pledged);
+    }
+
+    return filteredGames;
+}
+
+function renderGames() {
+    deleteChildElements(gamesContainer);
+    addGamesToPage(getVisibleGames());
+    updateActiveControls();
+}
 
 // add event listeners with the correct functions to each button
-unfundedBtn.addEventListener("click", filterUnfundedOnly);
-fundedBtn.addEventListener("click", filterFundedOnly);
-allBtn.addEventListener("click", showAllGames);
+unfundedBtn.addEventListener("click", () => {
+    selectedFilter = "unfunded";
+    renderGames();
+});
+
+fundedBtn.addEventListener("click", () => {
+    selectedFilter = "funded";
+    renderGames();
+});
+
+allBtn.addEventListener("click", () => {
+    selectedFilter = "all";
+    renderGames();
+});
+
+sortBtn.addEventListener("click", () => {
+    isSortedByPledged = !isSortedByPledged;
+    renderGames();
+});
+
+searchInput.addEventListener("input", event => {
+    searchQuery = event.target.value.trim().toLowerCase();
+    renderGames();
+});
+
+// display every game when the page first loads
+renderGames();
 
 /*************************************************************************************
  * Challenge 6: Add more information at the top of the page about the company.
